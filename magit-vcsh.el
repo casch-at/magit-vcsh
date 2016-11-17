@@ -36,11 +36,7 @@
 
 ;;; Code:
 
-(require 'magit)
-
-;; Inform byte-compiler that those variables are defined else where.
-(defvar magit-git-executable)
-(defvar magit-git-global-arguments)
+(require 'magit-git)
 
 (defvar magit-vcsh--git-exectuable nil
   "Will hold the value of `magit-git-executable',
@@ -71,7 +67,7 @@ The magit variables can be restored to the saved values by calling
                       (format "%s list" magit-vcsh-executable))))
         vcsh-repo)
     (if (not vcsh-repos)
-        (error "No vcsh repository available")
+        (error "No vcsh repository created yet")
       (when (or (not magit-vcsh--git-global-arguments) arg)
         (setq vcsh-repo (completing-read "VCSH Repository: " vcsh-repos nil t)))
       (when vcsh-repo
@@ -83,9 +79,8 @@ The magit variables can be restored to the saved values by calling
           (setq magit-vcsh--git-global-arguments magit-git-global-arguments))
         (push vcsh-repo magit-git-global-arguments))
       (when (and magit-vcsh--git-exectuable
-                 (member (car magit-git-global-arguments)
-                         '("emacsinit" "org-notes"))
-                 (magit-status-internal (getenv "HOME")))))))
+                 (member (car magit-git-global-arguments) vcsh-repos))
+        (magit-status-internal (expand-file-name "~/"))))))
 
 ;;;###autoload
 (defun magit-vcsh-magit-restore ()
@@ -97,8 +92,6 @@ The magit variables can be restored to the saved values by calling
   (when magit-vcsh--git-global-arguments
     (setq magit-git-global-arguments magit-vcsh--git-global-arguments
           magit-vcsh--git-global-arguments nil)))
-(global-set-key (kbd "C-c v s") 'magit-vcsh-status)
-(global-set-key (kbd "C-c v r") 'magit-vcsh-magit-restore)
 
 (provide 'magit-vcsh)
 
